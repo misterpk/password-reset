@@ -1,5 +1,6 @@
 from student import Student
 import json
+import os
 
 
 def draw_main_menu():
@@ -34,28 +35,64 @@ def draw_student_menu():
 
 
 def add_student():
-    with open('class_roster.txt', 'a') as class_roster:
+    with open('class_roster.txt', 'r+') as class_roster:
         name = input("Enter the student's name: ")
         nickname = input("Enter the student's nick name: ")
         student_id = input("Enter the student's ID: ")
 
         student = Student(name, nickname, student_id)
 
-        class_roster.write("{}, {}, {}, {}\n".format(student.student_id,
-                                                     student.name,
-                                                     student.nickname,
-                                                     student.password))
-
-        class_roster.close()
+        if os.stat('class_roster.txt').st_size == 0:
+            roster = {student.student_id: {"Name": student.name,
+                                           "Nickname": student.nickname,
+                                           "Password": student.password}}
+            json.dump(roster, class_roster)
+            print(roster)
+            class_roster.close()
+        else:
+            roster = json.load(class_roster)
+            roster[student.student_id] = {"Name": student.name,
+                                          "Nickname": student.nickname,
+                                          "Password": student.password}
+            class_roster.seek(0)
+            class_roster.truncate()
+            json.dump(roster, class_roster)
+            print(roster)
+            class_roster.close()
 
 
 def change_password():
-    with open('class_roster.txt', 'a') as class_roster:
-        new_password = input("The password must meet the following criteria:\n"
-                             "* At least 8 characters long\n* At least 1 "
-                             "lowercase letter\n* At least 1 uppercase "
-                             "letter.\n\nEnter a new password: ")
-
+    with open('class_roster.txt', 'r+') as class_roster:
+        roster = json.load(class_roster)
+        student_id = input("Enter your Student ID: ")
+        while True:
+            old_password = input("Enter your old password: ")
+            if old_password == roster[student_id]["Password"]:
+                student = Student(roster[student_id]["Name"],
+                                  roster[student_id]["Nickname"],
+                                  roster[student_id],
+                                  old_password)
+                while True:
+                    try:
+                        new_password = input(
+                            "The password must meet the following criteria:\n"
+                            "* At least 8 characters long\n* At least 1 "
+                            "lowercase letter\n* At least 1 uppercase "
+                            "letter.\n\nEnter a new password: ")
+                        student.password = new_password
+                        break
+                    except ValueError:
+                        print("Invalid password entered.")
+                roster[student_id]["Password"] = student.password
+                class_roster.seek(0)
+                class_roster.truncate()
+                json.dump(roster, class_roster)
+                print(roster)
+                class_roster.close()
+                return
+            else:
+                print("Invalid password.")
+                continue
 
 if __name__ == "__main__":
     # with open('class_roster.txt', 'r+') as class_roster:
@@ -70,7 +107,7 @@ if __name__ == "__main__":
         elif choice == "02":
             choice = draw_student_menu()
             if choice == "01":
-
+                change_password()
         elif choice.upper() == "Q":
             exit(1)
         else:

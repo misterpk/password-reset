@@ -1,2 +1,1 @@
-1, Nick Kim, misterpk, Test1234
-2, Michelle Oh, moh, Test1234
+{"7295112": {"Name": "Michelle", "Nickname": "duckie", "Password": "Tester4643"}, "79": {"Name": "Nick Kim", "Nickname": "syntrillium", "Password": "Test1234"}}
